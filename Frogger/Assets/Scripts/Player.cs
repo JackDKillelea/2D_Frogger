@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
 
+    public delegate void PlayerHandler();
+    public event PlayerHandler OnPlayerMoved;
+    public event PlayerHandler OnPlayerCompleted;
+
     public float jumpDist = 0.32f;
 
-    private bool jumping = false;
+    private bool moving = false;
     private Vector3 startingPos;
 
 	// Use this for initialization
@@ -23,31 +27,48 @@ public class Player : MonoBehaviour {
         float horizontalMovement = Input.GetAxis("Horizontal");
         float verticalMovement = Input.GetAxis("Vertical");
 
-        if(!jumping)
+        if(!moving)
         {
+            Vector2 targetPos = Vector2.zero;
+            bool tryingToMove = false;
+
             //  The wizard didn't move.
             if (horizontalMovement != 0)
             {
-                transform.position = new Vector2(
+                tryingToMove = true;
+                targetPos = new Vector2(
                     transform.position.x + (horizontalMovement > 0 ? jumpDist : -jumpDist),
                     transform.position.y);
-                jumping = true;
             }
             if(verticalMovement != 0)
             {
-                transform.position = new Vector2(
+                tryingToMove = true;
+                targetPos = new Vector2(
                     transform.position.x,
                     transform.position.y + (verticalMovement > 0 ? jumpDist : -jumpDist)
                     );
-                jumping = true;
             }
+
+            // Test for collision between the wizard and other parts of the game scene.
+            Collider2D hitCollider = Physics2D.OverlapCircle(targetPos, 0.1f);
+            if(tryingToMove == true && hitCollider == null)
+            {
+                transform.position = targetPos;
+                moving = true;
+
+                if (OnPlayerMoved != null)
+                {
+                    OnPlayerMoved();
+                }
+            }
+
         }
         else    
         {
             // The wizard did move.
             if (horizontalMovement == 0 && verticalMovement == 00)
             {
-                jumping = false;
+                moving = false;
             }
         }
 
@@ -64,6 +85,10 @@ public class Player : MonoBehaviour {
         {
             // Checking for the upper bound in the Y axis.
             transform.position = startingPos;
+            if(OnPlayerCompleted != null)
+            {
+                OnPlayerCompleted();
+            }
         }
 
 
