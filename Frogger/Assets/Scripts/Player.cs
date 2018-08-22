@@ -51,10 +51,11 @@ public class Player : MonoBehaviour {
 
             // Test for collision between the wizard and other parts of the game scene.
             Collider2D hitCollider = Physics2D.OverlapCircle(targetPos, 0.1f);
-            if(tryingToMove == true && hitCollider == null)
+            if(tryingToMove == true && (hitCollider == null || hitCollider.GetComponent<Enemy>() != null))
             {
                 transform.position = targetPos;
                 moving = true;
+                GetComponent<AudioSource>().Play();
 
                 if (OnPlayerMoved != null)
                 {
@@ -102,6 +103,14 @@ public class Player : MonoBehaviour {
         {
             // Checking for the right bound in the X axis.
             transform.position = new Vector3(transform.position.x - jumpDist, transform.position.y);
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D otherCollider)
+    {
+        if(otherCollider.GetComponent<Enemy>() != null)
+        {
+            Destroy(gameObject);
         }
     }
 }
